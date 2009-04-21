@@ -1,3 +1,5 @@
+require 'pp'
+
 class Admin::ProductsController < Admin::BaseController
   resource_controller
   before_filter :load_data
@@ -80,6 +82,7 @@ class Admin::ProductsController < Admin::BaseController
       @search.per_page = Spree::Config[:admin_products_per_page]
       @search.include = :images
       @collection = @search.all
+      pp @collection
     end
 
     # override rc_default build b/c we need to make sure there's an empty variant added to each product
