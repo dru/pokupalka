@@ -16,12 +16,20 @@ $(function() {
         continue_section(e.data);
       }
     });
-  }                           
-
-	// hookup the radio buttons for registration
-	$('#choose_register').click(function() { $('div#new_user').show(); $('div#guest_user, div#existing_user').hide(); });
-	$('#choose_existing').click(function() { $('div#existing_user').show(); $('div#guest_user, div#new_user').hide(); });
-	$('#choose_guest').click(function() { $('div#guest_user').show(); $('div#existing_user, div#new_user').hide(); });	
+  }                          
+  //disable submit
+  $(':submit').attr('disabled', 'disbled');
+      
+  // hookup the radio buttons for registration
+  $('#choose_register').click(function() { $('div#new_user').show(); $('div#guest_user, div#existing_user').hide(); }); 
+  $('#choose_existing').click(function() { $('div#existing_user').show(); $('div#guest_user, div#new_user').hide(); });
+  $('#choose_guest').click(function() { $('div#guest_user').show(); $('div#existing_user, div#new_user').hide(); });
+  var reg_choice = $('input[name=choose_registration]:checked').val();
+  if(reg_choice) {
+    $('#choose_' + reg_choice).click(); 
+  } else {
+    $('#choose_register').attr('checked', true);
+  }
 
   // activate first region
   shift_to_region(regions[0]);  
@@ -39,7 +47,7 @@ jQuery.fn.sameAddress = function() {
     })
     update_state('s');
   })
-}
+};
 
 //Initial state mapper on page load
 var state_mapper;
@@ -76,7 +84,6 @@ var chg_state_input_element = function (parent, html) {
   parent.append(html);
   return html;
 };
-
 
 // TODO: better as sibling dummy state ?
 // Update the input method for address.state 
@@ -132,9 +139,10 @@ var continue_section = function(section) {
       shift_to_region(regions[i+1]);
     }
   }  
-} 
+};
 
 var validate_section = function(region) {
+  if(region == 'shipping_method') { return true; }
   var validator = $('form#checkout_form').validate();
   var valid = true;
   $('div#' + region + ' input:visible, div#' + region + ' select:visible, div#' + region + ' textarea:visible').each(function() {
@@ -146,24 +154,25 @@ var validate_section = function(region) {
 };
 
 var shift_to_region = function(active) {
-  $('div#flash-errors').remove();  
+  if (active != regions[0]) { $('div#flash-errors').remove(); }
   var found = 0;
   for(var i=0; i<regions.length; i++) {
     if(!found) {
       if(active == regions[i]) {
         $('div#' + regions[i] + ' h2').unbind('click').css('cursor', 'default');
         $('div#' + regions[i] + ' div.inner').show('fast');
-        $('div#' + regions[i]).removeClass('checkout_disabled');
+        $('div#' + regions[i]).removeClass('checkout_disabled').removeClass('disabled').removeClass('completed');
         found = 1;
       }
       else {
         $('div#' + regions[i] + ' h2').unbind('click').css('cursor', 'pointer').click(function() {shift_to_region($(this).parent().attr('id'));});
         $('div#' + regions[i] + ' div.inner').hide('fast');
+        $('div#' + regions[i]).addClass('disabled').addClass('completed');
       }
     } else {
       $('div#' + regions[i] + ' h2').unbind('click').css('cursor', 'default');
       $('div#' + regions[i] + ' div.inner').hide('fast');
-      $('div#' + regions[i]).addClass('checkout_disabled');
+      $('div#' + regions[i]).addClass('checkout_disabled').addClass('disabled').removeClass('completed');
     }
   }                                                                         
   if (active == 'confirmation') {
@@ -206,6 +215,7 @@ var build_address = function(title, region) {
 
 var submit_shipping = function() {
   $('div#methods :child').remove();
+  $('div#shipping_method div.error').hide();
   $('div#methods').append($(document.createElement('img')).attr('src', '/images/ajax_loader.gif').attr('id', 'shipping_loader'));
   // Save what we have so far and get the list of shipping methods via AJAX
   $.ajax({
@@ -213,15 +223,15 @@ var submit_shipping = function() {
     url: 'checkout',                                 
     beforeSend : function (xhr) {
       xhr.setRequestHeader('Accept-Encoding', 'identity');
-    },      
+    },
     dataType: "json",
     data: $('#checkout_form').serialize(),
     success: function(json) {  
       update_shipping_methods(json.available_methods); 
     },
     error: function (XMLHttpRequest, textStatus, errorThrown) {
-      // TODO - put some real error handling in here
-      $("#error").html(XMLHttpRequest.responseText); 
+      $('div#methods :child').remove();
+      $('div#shipping_method div.error').show();
       return false;
     }
   });  
@@ -248,7 +258,7 @@ var submit_shipping_method = function() {
       dataType: "json",
       data: $('#checkout_form').serialize(),
       success: function(json) {  
-        update_confirmation(json.order); 
+        update_confirmation(json);
       },
       error: function (XMLHttpRequest, textStatus, errorThrown) {
         // TODO - put some real error handling in here
@@ -281,45 +291,40 @@ var update_shipping_methods = function(methods) {
     }
     var l = $(document.createElement('label'))
                 .attr('for', s)
-                .html(s)
-                .css('top', '-1px')
-                .css('width', '300px');
+                .html(s);
     $('div#methods').append($(p).append(i).append(l));
   });
   $('div#methods input:first').attr('validate', 'required:true');
   return;
-}                                     
+};                                     
 
 var update_confirmation = function(order) {
   $('span#order_total').html(order.order_total);
   $('span#ship_amount').html(order.ship_amount);
   $('span#tax_amount').html(order.tax_amount);                                  
   $('span#ship_method').html(order.ship_method);                                    
-}       
+};      
 
 var submit_registration = function() {
   // no need to do any ajax, user is already logged in
   if ($('div#already_logged_in:hidden').size() == 0) return true;
-  var register_method = $("input[name='choose_registration']:checked").val();
+  var register_method = $('input[name=choose_registration]:checked').val();
   
-  $('div#registration_error').removeClass('error').html("");    
+  $('div#registration_error').removeClass('error').html('');    
 
-	if (register_method == "login") {
-		ajax_login();
-		return ($('div#registration_error:hidden').size() == 1);
-	}
-
-	if (register_method == "register") {
-		ajax_register();
-		return ($('div#registration_error:hidden').size() == 1);
-	}
+  if (register_method == 'existing') {
+	ajax_login();
+  }
+  else if (register_method == 'register') {
+	ajax_register();
+  }
 		
-  return ($('div#registration_error:hidden').size() == 1);  
+  return ($('div#registration_error').html() == "");  
 };
 
 var ajax_login = function() {
   $.ajax({
-		async: false,
+    async: false,
     type: "POST",
     url: '/user_session',                                 
     beforeSend : function (xhr) {
@@ -329,23 +334,22 @@ var ajax_login = function() {
     data: $('#checkout_form').serialize(),
     success: function(result) {  
       if (result) {
-				$('div#already_logged_in').show();
-				$('div#register_or_guest').hide();
-        // todo update login partial
+        $('div#already_logged_in').show();
+        $('div#register_or_guest').hide();
+        update_login();
       } else {
         registration_error("Invalid username or password.");
       };
     },
     error: function (XMLHttpRequest, textStatus, errorThrown) {
-      // TODO - put some real error handling in here
-      $("#ajax_error").html(XMLHttpRequest.responseText);           
+      registration_error("Unable to perform login due to a server error.");
     }
   });  	
-}
+};
 
 var ajax_register = function() {
   $.ajax({
-		async: false,
+    async: false,
     type: "POST",
     url: '/users',                                 
     beforeSend : function (xhr) {
@@ -355,9 +359,9 @@ var ajax_register = function() {
     data: $('#checkout_form').serialize(),
     success: function(result) {  
       if (result == true) {
-				$('div#already_logged_in').show();
-				$('div#register_or_guest').hide();
-        // todo update login partial
+        $('div#already_logged_in').show();
+        $('div#register_or_guest').hide();
+        update_login();
       } else {                                         
         var error_msg = "Unable to register user";              
         for (var i=0; i < result.length; i++) {
@@ -368,15 +372,14 @@ var ajax_register = function() {
       };
     },
     error: function (XMLHttpRequest, textStatus, errorThrown) {
-      // TODO - put some real error handling in here
-      $("#ajax_error").html(XMLHttpRequest.responseText);           
+      registration_error("Unable to register due to a server error.");    
     }
   });  	
-}
+};
 
 var registration_error = function(error_message) {
   $('div#registration_error').addClass('error').html(error_message);
-}
+};
 
 var submit_payment = function() {             
   return true;
@@ -385,4 +388,21 @@ var submit_payment = function() {
 var submit_confirmation = function() {  
   //$('form').submit();
   $('#post-final').click();
+};
+
+// update login partial
+var update_login = function() {
+  $.ajax({
+    url: '/user_session/login_bar',                                 
+    beforeSend : function (xhr) {
+      xhr.setRequestHeader('Accept-Encoding', 'identity');
+    },      
+    dataType: "html",
+    success: function(result) {
+	 		$("div#login-bar").html(result);  
+    },
+    error: function (XMLHttpRequest, textStatus, errorThrown) {
+      // TODO (maybe do nothing)
+    }
+  });  	
 };

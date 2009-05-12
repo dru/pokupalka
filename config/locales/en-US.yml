@@ -295,7 +295,8 @@ en-US:
   logged_in_as: "Logged in as"
   logged_in_succesfully: "Logged in successfully"
   logged_out: "You have been logged out." 
-  login_failed: "Login authentication failed."      
+  login_as_existing: "Log In as Existing Customer" 
+  login_failed: "Login authentication failed."    
   login_name: Login
   logout: Logout  
   mail_delivery_enabled: "Mail delivery is enabled"
@@ -487,6 +488,7 @@ en-US:
   tree: Tree
   try_again: "Try Again"
   type: Type
+  unable_ship_method: "Unable to generate shipping methods due to a server error."
   unable_to_authorize_credit_card: "Unable to Authorize Credit Card"
   unable_to_capture_credit_card: "Unable to Capture Credit Card"
   unable_to_save_order: "Unable to Save Order"

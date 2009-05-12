@@ -25,19 +25,20 @@ namespace 'spree' do
     s.description = "Spree is a complete commerce solution designed for use by experienced Rails developers. No solution can possibly solve everyone’s needs perfectly. There are simply too many ways that people do business for us to model them all specifically. Rather then come up short (like so many projects before it), Spree’s approach is to simply accept this and not even try. Instead Spree tries to focus on solving the 90% of the problem that most commerce projects face and anticipate that the other 10% will need to be addressed by the end developer familiar with the client’s exact business requirements."
     s.author = "Sean Schofield"
     s.email = "sean.schofield@gmail.com"
-    s.homepage = 'http://spreehq.org'
+    s.homepage = 'http://spreecommerce.com/'
     s.rubyforge_project = RUBY_FORGE_PROJECT
     s.platform = Gem::Platform::RUBY
     s.bindir = 'bin'
     s.executables = ['spree']
     s.add_dependency 'rake', '>= 0.7.1'
-    s.add_dependency 'highline', '= 1.4.0'
+    s.add_dependency 'highline', '>= 1.4.0'
     s.add_dependency 'rails', '= 2.3.2'
-    s.add_dependency 'activemerchant', '= 1.4.1'
-    s.add_dependency 'activerecord-tableless', '= 0.1.0' 
-    s.add_dependency 'has_many_polymorphs', '= 2.13'     
+    s.add_dependency 'activemerchant', '>= 1.4.1'
+    s.add_dependency 'activerecord-tableless', '>= 0.1.0' 
     s.add_dependency 'calendar_date_select', '= 1.15' 
     s.add_dependency 'tlsmail', '= 0.0.1'
+    # For some reason the authlogic dependency really screws things up (See Issue #433)
+    #s.add_dependency 'authlogic', '>= 2.0.11'
     s.has_rdoc = true
     #s.rdoc_options << '--title' << RDOC_TITLE << '--line-numbers' << '--main' << 'README'
     rdoc_excludes = Dir["**"].reject { |f| !File.directory? f }
@@ -63,7 +64,6 @@ namespace 'spree' do
     #files.include 'log/.keep'
     files.exclude /^pkg/
     files.include 'public/.htaccess.example'
-    files.include 'vendor/gems/active_presenter-0.0.6/.specification'
     files.exclude 'public/images/products'
     files.exclude 'tmp/'
     s.files = files.to_a
