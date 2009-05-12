@@ -18,7 +18,8 @@ $(function() {
     });
   }                          
   //disable submit
-  $(':submit').attr('disabled', 'disbled');
+  $('div#checkout :submit').attr('disabled', 'disabled');
+
       
   // hookup the radio buttons for registration
   $('#choose_register').click(function() { $('div#new_user').show(); $('div#guest_user, div#existing_user').hide(); }); 
@@ -183,18 +184,18 @@ var shift_to_region = function(active) {
     // indicates order is ready to be processed (as opposed to simply updated)
     $("input#final_answer").attr("value", "");
     // disable form submit
-    $(':submit').attr('disabled', 'disbled'); 
+    $('div#checkout :submit').attr('disabled', 'disabled');
   }
   return;
 };
 
 var submit_billing = function() {
-  build_address('Billing Address', 'b');
+  build_address('b');
   return true;
 };
 
-var build_address = function(title, region) {
-  var address = '<h3>' + title + '</h3>';
+var build_address = function(region) {
+  var address = "";
   address += $('p#' + region + 'fname input').val() + ' ' + $('p#' + region + 'lname input').val() + '<br />';
   address += $('p#' + region + 'address input').val() + '<br />';
   if($('p#' + region + 'address2').val() != '') {
@@ -209,7 +210,7 @@ var build_address = function(title, region) {
   address += ' ' + $('p#' + region + 'zip input').val() + '<br />';
   address += $('p#' + region + 'country :selected').html() + '<br />';
   address += $('p#' + region + 'phone input').val();
-  $('div#' + region + 'display').html(address);
+  $('div#' + region + 'display div').html(address);
   return;
 };
 
@@ -235,7 +236,7 @@ var submit_shipping = function() {
       return false;
     }
   });  
-  build_address('Shipping Address', 's');
+  build_address('s');
   return true;
 };
                      
@@ -290,7 +291,7 @@ var update_shipping_methods = function(methods) {
       i.attr('checked', 'checked');
     }
     var l = $(document.createElement('label'))
-                .attr('for', s)
+                .attr('for', this.id)
                 .html(s);
     $('div#methods').append($(p).append(i).append(l));
   });
